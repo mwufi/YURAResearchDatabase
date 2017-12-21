@@ -11,13 +11,12 @@ var admin = require('./routes/admin');
 var listings = require('./routes/listings');
 var terms = require('./routes/terms');
 var feedback = require('./routes/feedback');
-var feedbackconfirm = require('./routes/feedback-confirm');
 
 var config = require('./bin/config');
-var localcn = require('./bin/localcn');
 var depts = require('./bin/departments');
 var cas = require('./bin/cas');
 var session = require('express-session')
+//var ua = require('universal-analytics');
 
 var app = express();
 
@@ -40,7 +39,6 @@ app.use('/', index);
 //app.use('/listings', listings);
 app.use('/terms', terms);
 app.use('/feedback', feedback);
-app.use('/feedback/confirm', feedbackconfirm);
 
 app.use(session({
   secret: config.sessionSecret,
@@ -53,6 +51,7 @@ app.use(session({
 
 var user = "";
 var auth = cas(config.host, config.port);
+//app.use(ua.middleware("UA-63178606-6", {cookieName: '_ga'}));
 
 app.get('/logout', function(req, res) {
   req.session.destroy(function(err) {
@@ -60,6 +59,10 @@ app.get('/logout', function(req, res) {
     auth.logout;
     res.redirect('/');
   });
+});
+
+app.get('/database',function(req,res){
+  res.redirect('/');
 });
 
 app.get('/users', auth.bounce, users);
@@ -75,6 +78,11 @@ app.get('/admin/:page', auth.bounce, admin);
 app.post('/listings/removeFavorite/:listingid', listings);
 
 app.post('/listings/addFavorite/:listingid', listings);
+
+// letsencrypt ssl certificate confirmation
+app.get('/.well-known/acme-challenge/:content', function(req, res) {
+  res.send('_Vz9KLmSfZNgaOvmV2SP29dF3UYbRqnxs4u6zuA9nRs.eQwz2bF_dTl8qE6neOOeozqWGRcP-4Jiolfu9-s9xtA')
+})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
